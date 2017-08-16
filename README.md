@@ -16,7 +16,9 @@ Dependencies:
  * a gcc compiler
  * make program
 ```bash
-git clone https://github.com/ip4368/COMP30023_project2_bitcoin_miner_tcp_server.git && cd src
+git clone https://github.com/ip4368/COMP30023_project2_bitcoin_miner_tcp_server.git
+cd COMP30023_project2_bitcoin_miner_tcp_server/src
+
 make
 ```
 
