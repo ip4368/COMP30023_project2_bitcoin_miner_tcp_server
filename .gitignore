@@ -32,5 +32,6 @@
 *.dSYM/
 *.su
 
-# Ad-hoc executable
+# Ad-hoc for this project
 server
+log.txt
