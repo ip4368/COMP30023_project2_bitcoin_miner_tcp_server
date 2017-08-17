@@ -11,6 +11,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 #include "list.h"
 #include "alloc.h"
 
@@ -18,12 +19,20 @@ List newList(){
 	List list = (List)safe_malloc(sizeof(*list));
 	list->head = list->tail = NULL;
 	list->size = 0;
+	pthread_mutex_init(&list->lock, NULL);
+	list->is_locked = 0;
 	return list;
 }
 
 ListNode list_append(List list, void *data){
 	ListNode node = (ListNode)safe_malloc(sizeof(*node));
+	int lock_locally = !list->is_locked;
 
+	if (lock_locally){
+		pthread_mutex_lock(&list->lock);
+		list->is_locked = 1;
+	}
+	
 	/*
 	 * list originally empty
 	 */
@@ -32,6 +41,10 @@ ListNode list_append(List list, void *data){
 		node->data = data;
 		list->head = list->tail = node;
 		list->size++;
+		if (lock_locally){
+			list->is_locked = 0;
+			pthread_mutex_unlock(&list->lock);
+		}
 		return node;
 	}
 	/*
@@ -49,15 +62,32 @@ ListNode list_append(List list, void *data){
 	 */
 	list->tail = node;
 	list->size++;
+	list->is_locked = 0;
+	if (lock_locally){
+		list->is_locked = 0;
+		pthread_mutex_unlock(&list->lock);
+	}
 	return node;
 }
 
 ListNode list_insert_sorted(List list, void *data, int(*cmp)(void *, void*)){
+	int lock_locally = !list->is_locked;
+
+	if (lock_locally){
+		pthread_mutex_lock(&list->lock);
+		list->is_locked = 1;
+	}
 	/*
 	 * Just nothing in list, just insert any way
 	 */
 	if(list->head == NULL && list->tail == NULL){
-		return list_append(list, data);
+		ListNode ln = list_append(list, data);
+		list->is_locked = 0;
+		if (lock_locally){
+			pthread_mutex_unlock(&list->lock);
+			list->is_locked = 0;
+		}
+		return ln;
 	}
 
 	ListNode node = (ListNode)safe_malloc(sizeof(*node));
@@ -92,10 +122,21 @@ ListNode list_insert_sorted(List list, void *data, int(*cmp)(void *, void*)){
 		node->previous->next = node->next->previous = node;
 	}
 	list->size++;
+	if (lock_locally){
+		pthread_mutex_unlock(&list->lock);
+		list->is_locked = 0;
+	}
 	return node;
 }
 
 void *list_pop(List list){
+	int lock_locally = !list->is_locked;
+
+	if (lock_locally){
+		pthread_mutex_lock(&list->lock);
+		list->is_locked = 1;
+	}
+
 	/*
 	 * only one node in the list
 	 */
@@ -105,6 +146,10 @@ void *list_pop(List list){
 		void *data = node->data;
 		free(node);
 		list->size--;
+		if (lock_locally){
+			pthread_mutex_unlock(&list->lock);
+			list->is_locked = 0;
+		}
 		return data;
 	}
 
@@ -118,15 +163,30 @@ void *list_pop(List list){
 	void *data = head->data;
 	free(head);
 	list->size--;
+	if (lock_locally){
+		pthread_mutex_unlock(&list->lock);
+		list->is_locked = 0;
+	}
 	return data;
 }
 
 void list_remove(List list, ListNode node){
+	int lock_locally = !list->is_locked;
+
+	if (lock_locally){
+		pthread_mutex_lock(&list->lock);
+		list->is_locked = 1;
+	}
+
 	/*
 	 * ONLY 1 node in the list or removing the head, just pop it
 	 */
 	if(node->previous == NULL){
 		list_pop(list);
+		if (lock_locally){
+			pthread_mutex_unlock(&list->lock);
+			list->is_locked = 0;
+		}
 		return;
 	}
 
@@ -138,6 +198,10 @@ void list_remove(List list, ListNode node){
 		list->tail->next = NULL;
 		free(node);
 		list->size--;
+		if (lock_locally){
+			pthread_mutex_unlock(&list->lock);
+			list->is_locked = 0;
+		}
 		return;
 	}
 
@@ -145,6 +209,11 @@ void list_remove(List list, ListNode node){
 	node->next->previous = node->previous;
 	free(node);
 	list->size--;
+
+	if (lock_locally){
+		pthread_mutex_unlock(&list->lock);
+		list->is_locked = 0;
+	}
 }
 
 void *list_peek_head(List list){

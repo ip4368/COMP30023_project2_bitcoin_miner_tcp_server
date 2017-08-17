@@ -17,6 +17,8 @@
  * StudentID in unimelb: 723508
  */
 
+#include <pthread.h>
+
 #ifndef LIST
 
 #define LIST
@@ -32,6 +34,8 @@ typedef struct {
 	ListNode head;
 	ListNode tail;
 	int size;
+	pthread_mutex_t lock;
+	int is_locked;
 } *List;
 
 List newList();
