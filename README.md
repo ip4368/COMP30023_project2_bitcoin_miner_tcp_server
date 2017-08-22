@@ -31,7 +31,7 @@ After compilation, you can specify the port number, the example below uses port 
 ---
 
 # Details
-This is a nearly full mark + bonus marks solution except I made a small mistake on one respond message.
+This is a nearly full mark + bonus marks (16.5/17, 2 out of 17 are bonus marks) solution except I made a small mistake on one respond message.
 
 This TCP server uses an architecture that is similar to Apache webserver for request handling. Which is quite different from what Nginx did. I am going discuss a bit on the advantages and disadvantages between this 2 different methods.
 
