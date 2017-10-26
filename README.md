@@ -70,7 +70,7 @@ The order of handling connection and request are as follow
 
 ## Comparison between this connection handling method vs Nginx handling method
  1. This method will have more instant respond if you have enough core count in the system, and a lot of threads are blocking
- 2. Nginx method (which uses poll/select, epoll on Linux, kqueue on FreeBSD, OpenBSD, NetBSD, and macOS, they are similar but system optimised system call) will has better scalability, as less thread is spawn, the system will not need to do context switch often (which affected by scheduling algorithm as well). Nginx only spawn n threads if there are n logical threads in maximum for handling request, but all connections are handled by 1 single thread using the poll/select-like functions.
+ 2. Nginx method (which uses poll/select, epoll on Linux, kqueue on FreeBSD, OpenBSD, NetBSD, and macOS, they are similar but system optimised system call) will has better scalability, as less thread is spawn, the system will not need to do context switch often (which affected by scheduling algorithm as well). Nginx only spawn n threads if there are n logical threads in maximum for handling request, but all connections are handled by 1 single thread using the poll/select-like functions.
  Generally I think Nginx method should be more efficient (You can search online for Apache vs Nginx comparison in detail).
  
 ---
